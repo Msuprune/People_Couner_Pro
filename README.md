@@ -15,7 +15,7 @@ About Text Here
 
 ## Documentation
 
-Documentation Here
+[Documentation Here](https://docs.google.com/document/d/1VfPjOoFXUJJgmx5dfEBwXraTvowJdeUM/edit?usp=sharing&ouid=118281345003209584583&rtpof=true&sd=true)
 
 ## Distribute
 
@@ -23,7 +23,8 @@ Documentation Here
 
 
 ## Developers
+Only me
 
-- [Delevoper Name](GitHub Profile Link)
 
 ## License
+
