@@ -5,7 +5,7 @@
 
 <p align="center">
    <img src="https://img.shields.io/badge/Python-3.12.10-blue?style=flat-square&logo=python" alt="Python Version">
-   <img src="https://img.shields.io{user}/{repo}?style=flat-square&label=release&color=orange" alt="Program Version">
+   <img src="https://img.shields.io/badge/release-version-orange?style=flat-square" alt="Program Version">
    <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
 </p>
 
@@ -25,6 +25,7 @@ Only me
 ## License
 
 Project People Counter Pro is distributed under the MIT Linense.
+
 
 
 
