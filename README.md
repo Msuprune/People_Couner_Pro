@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-   <img src="" alt="Python Version">
+   <img src="https://img.shields.io/badge/Python-3.12.10-blue?style=flat-square&logo=python" alt="Python Version">
    <img src="" alt="Program Version">
    <img src="" alt="License">
 </p>
@@ -17,11 +17,6 @@ People Counter Pro is a professional video analytics system for counting people 
 
 [Documentation Here](https://docs.google.com/document/d/1VfPjOoFXUJJgmx5dfEBwXraTvowJdeUM/edit?usp=sharing&ouid=118281345003209584583&rtpof=true&sd=true)
 
-## Distribute
-
-- [Service Name](Page Link)
-
-
 ## Developers
 
 Only me
@@ -30,6 +25,7 @@ Only me
 ## License
 
 Project People Counter Pro is distributed under the MIT Linense.
+
 
 
 
