@@ -24,7 +24,8 @@ Only me
 
 ## License
 
-Project People Counter Pro is distributed under the MIT Linense.
+Project People Counter Pro is distributed under the MIT license.
+
 
 
 
