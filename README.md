@@ -23,10 +23,14 @@ People Counter Pro is a professional video analytics system for counting people 
 
 
 ## Developers
+
 Only me
 
 
 ## License
+
+Project People Counter Pro is distributed under the MIT Linense.
+
 
 
 
