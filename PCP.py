@@ -245,7 +245,26 @@ LANGUAGES = {
         "select_all": "Select All",
         "face_blur": "Blur Faces (Anon)",
         "gpu_acceleration": "GPU Acceleration (CUDA)",
-        "turbo_mode": "Turbo Mode (MAX Load & Accuracy)"
+        "turbo_mode": "Turbo Mode (MAX Load & Accuracy)",
+        "email_notif_header": "🚨 THRESHOLD EXCEEDED NOTIFICATION",
+        "email_notif_time": "Time:",
+        "email_notif_stats": "Current statistics:",
+        "email_notif_footer": "This notification was sent by an automated attendance monitoring system.",
+        "threshold_simple": "threshold",
+        "connection_success": "Connection successful!",
+        "smtp_server_label": "SMTP Server:",
+        "port_label": "Port:",
+        "email_label": "Email:",
+        "entered_label": "ENTRY",
+        "exited_label": "EXIT",
+        "control_label": "CONTROL",
+        "zone_label": "INTEREST ZONE",
+        "total_label": "TOTAL",
+        "hours_unit": "h",
+        "mins_unit": "min",
+        "secs_unit": "sec",
+        "folder_link": "🔗 Folder link: {}",
+        "files_saved_label": "Files saved successfully:"
     },
     "ru": {
         "app_title": "People Counter Pro v3.0 (Аналитика и Приватность)",
@@ -434,7 +453,26 @@ LANGUAGES = {
         "select_all": "Выделить всё",
         "face_blur": "Размытие лиц (Аноним)",
         "gpu_acceleration": "GPU ускорение (CUDA)",
-        "turbo_mode": "Турбо-режим (MAX точность и нагрузка)"
+        "turbo_mode": "Турбо-режим (MAX точность и нагрузка)",
+        "email_notif_header": "🚨 УВЕДОМЛЕНИЕ О ПРЕВЫШЕНИИ ПОРОГА",
+        "email_notif_time": "Время:",
+        "email_notif_stats": "Текущая статистика:",
+        "email_notif_footer": "Это уведомление отправлено автоматической системой мониторинга посещаемости.",
+        "threshold_simple": "порог",
+        "connection_success": "Подключение успешно!",
+        "smtp_server_label": "SMTP Сервер:",
+        "port_label": "Порт:",
+        "email_label": "Email:",
+        "entered_label": "ВХОД",
+        "exited_label": "ВЫХОД",
+        "control_label": "КОНТРОЛЬ",
+        "zone_label": "ЗОНА ИНТЕРЕСА",
+        "total_label": "ВСЕГО",
+        "hours_unit": "ч",
+        "mins_unit": "мин",
+        "secs_unit": "сек",
+        "folder_link": "🔗 Ссылка на папку: {}",
+        "files_saved_label": "Файлы успешно сохранены:"
     },
     "kk": {
         "app_title": "People Counter Pro v3.0 (Талдау және Құпиялылық)",
@@ -622,7 +660,26 @@ LANGUAGES = {
         "cut": "Қиып алу",
         "select_all": "Барлығын таңдау",
         "face_blur": "Беттерді бұлдырату (Анон)",
-        "gpu_acceleration": "GPU үдетуі (CUDA)"
+        "gpu_acceleration": "GPU үдетуі (CUDA)",
+        "email_notif_header": "🚨 ТАБАЛДЫРЫҚТАН АСУ ТУРАЛЫ ХАБАРЛАМА",
+        "email_notif_time": "Уақыты:",
+        "email_notif_stats": "Ағымдағы статистика:",
+        "email_notif_footer": "Бұл хабарландыру автоматты келуді бақылау жүйесімен жіберілді.",
+        "threshold_simple": "табалдырық",
+        "connection_success": "Қосылу сәтті аяқталды!",
+        "smtp_server_label": "SMTP сервері:",
+        "port_label": "Порт:",
+        "email_label": "Email:",
+        "entered_label": "КІРУ",
+        "exited_label": "ШЫҒУ",
+        "control_label": "БАҚЫЛАУ",
+        "zone_label": "ҚЫЗЫҒУШЫЛЫҚ АЙМАҒЫ",
+        "total_label": "БАРЛЫҒЫ",
+        "hours_unit": "сағ",
+        "mins_unit": "мин",
+        "secs_unit": "сек",
+        "folder_link": "🔗 Папкаға сілтеме: {}",
+        "files_saved_label": "Файлдар сәтті сақталды:"
     }
 }
 
@@ -1573,20 +1630,15 @@ class NotificationSystem:
             os.chmod(self.config_file, 0o600)
         except:
             pass
-
     def test_email_connection(self, settings):
-        """
-        Проверяет возможность подключения к SMTP серверу с текущими настройками.
-        
-        Returns:
-            tuple: (success (bool), message (str))
-        """
+        """Проверяет настройки SMTP путем попытки входа на сервер."""
+        lang = get_current_language()
         try:
             context = ssl.create_default_context()
-            with smtplib.SMTP(settings['smtp_server'], int(settings['smtp_port'])) as server:
+            with smtplib.SMTP(settings['smtp_server'], int(settings['smtp_port']), timeout=10) as server:
                 server.starttls(context=context)
                 server.login(settings['email'], settings['password'])
-                return True, "Подключение успешно!"
+            return True, LANGUAGES[lang]["connection_success"]
         except Exception as e:
             return False, str(e)
 
@@ -1601,6 +1653,10 @@ class NotificationSystem:
         """
         if not self.email_enabled or not self.email_settings:
             return False
+        
+        lang = get_current_language()
+        L = LANGUAGES[lang]
+        
         try:
             msg = MIMEMultipart()
             msg['From'] = self.email_settings['email']
@@ -1611,21 +1667,21 @@ class NotificationSystem:
             html_body = f"""
             <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
-            <h2 style="color: #2c3e50;">🚨 УВЕДОМЛЕНИЕ О ПРЕВЫШЕНИИ ПОРОГА</h2>
-            <p><strong>Время:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <h2 style="color: #2c3e50;">{L['email_notif_header']}</h2>
+            <p><strong>{L['email_notif_time']}</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <h3>Текущая статистика:</h3>
+            <h3>{L['email_notif_stats']}</h3>
             <ul style="list-style: none; padding: 0;">
-            <li style="color: green; margin: 5px 0;">📥 Вход: {counts['entered']} (порог: {self.thresholds['entered']})</li>
-            <li style="color: red; margin: 5px 0;">📤 Выход: {counts['exited']} (порог: {self.thresholds['exited']})</li>
-            <li style="color: #ffcc00; margin: 5px 0;">🔍 Контроль: {counts['control']} (порог: {self.thresholds['control']})</li>
-            <li style="color: purple; margin: 5px 0;">🎯 Зона интереса: {counts['zone']} (порог: {self.thresholds['zone']})</li>
-            <li style="color: blue; margin: 5px 0;">👥 Всего: {counts['total']} (порог: {self.thresholds['total']})</li>
+            <li style="color: green; margin: 5px 0;">📥 {L['entry']}: {counts['entered']} ({L['threshold_simple']}: {self.thresholds['entered']})</li>
+            <li style="color: red; margin: 5px 0;">📤 {L['exit']}: {counts['exited']} ({L['threshold_simple']}: {self.thresholds['exited']})</li>
+            <li style="color: #ffcc00; margin: 5px 0;">🔍 {L['control']}: {counts['control']} ({L['threshold_simple']}: {self.thresholds['control']})</li>
+            <li style="color: purple; margin: 5px 0;">🎯 {L['interest_zone']}: {counts['zone']} ({L['threshold_simple']}: {self.thresholds['zone']})</li>
+            <li style="color: blue; margin: 5px 0;">👥 {L['total']}: {counts['total']} ({L['threshold_simple']}: {self.thresholds['total']})</li>
             </ul>
             </div>
             <p>{message}</p>
             <hr>
-            <p style="font-size: 12px; color: #666;">Это уведомление отправлено автоматической системой мониторинга посещаемости.</p>
+            <p style="font-size: 12px; color: #666;">{L['email_notif_footer']}</p>
             </body>
             </html>
             """
@@ -1656,6 +1712,7 @@ class NotificationSystem:
             bool: True, если хотя бы одно уведомление было инициировано.
         """
         notifications_sent = False
+        lang = get_current_language()
         for counter_type, current_count in counts.items():
             threshold = self.thresholds.get(counter_type, float('inf'))
             last_time = self.last_notification_time.get(counter_type, 0)
@@ -1663,8 +1720,9 @@ class NotificationSystem:
             
             # Условие: Превышен порог И (прошел кулдаун ИЛИ принудительная отправка)
             if current_count >= threshold and (force or (current_time - last_time) > self.cooldown):
-                subject = LANGUAGES[get_current_language()]["notif_subject_threshold"].format(counter_type.upper(), current_count)
-                message = LANGUAGES[get_current_language()]["notif_msg_threshold"].format(counter_type, current_count, threshold)
+                counter_label = LANGUAGES[lang].get(f"{counter_type}_label", counter_type.upper())
+                subject = LANGUAGES[lang]["notif_subject_threshold"].format(counter_label, current_count)
+                message = LANGUAGES[lang]["notif_msg_threshold"].format(counter_label, current_count, threshold)
                 
                 if self.email_enabled:
                     # Запуск отправки в фоне
@@ -1728,15 +1786,15 @@ class NotificationSettingsDialog:
 
     def create_email_tab(self, frame):
         """Заполняет вкладку настроек SMTP."""
-        ttk.Label(frame, text="SMTP Сервер:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        ttk.Label(frame, text=LANGUAGES[self.lang]["smtp_server_label"]).grid(row=0, column=0, padx=5, pady=5, sticky="e")
         self.smtp_server = ttk.Entry(frame, width=40)
         self.smtp_server.grid(row=0, column=1, padx=5, pady=5)
         
-        ttk.Label(frame, text="Порт:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
+        ttk.Label(frame, text=LANGUAGES[self.lang]["port_label"]).grid(row=1, column=0, padx=5, pady=5, sticky="e")
         self.smtp_port = ttk.Entry(frame, width=10)
         self.smtp_port.grid(row=1, column=1, padx=5, pady=5, sticky="w")
         
-        ttk.Label(frame, text="Email:").grid(row=2, column=0, padx=5, pady=5, sticky="e")
+        ttk.Label(frame, text=LANGUAGES[self.lang]["email_label"]).grid(row=2, column=0, padx=5, pady=5, sticky="e")
         self.email_entry = ttk.Entry(frame, width=40)
         self.email_entry.grid(row=2, column=1, padx=5, pady=5)
         
@@ -1762,7 +1820,8 @@ class NotificationSettingsDialog:
         self.threshold_vars = {}
         row = 0
         for counter_type, default_value in [('entered', 100), ('exited', 100), ('control', 50), ('zone', 20), ('total', 100)]:
-            ttk.Label(thresholds_frame, text=f"{counter_type.upper()}{LANGUAGES[self.lang]['threshold_label_suffix']}").grid(row=row, column=0, padx=5, pady=5, sticky="e")
+            counter_label = LANGUAGES[self.lang].get(f"{counter_type}_label", counter_type.upper())
+            ttk.Label(thresholds_frame, text=f"{counter_label}{LANGUAGES[self.lang]['threshold_label_suffix']}").grid(row=row, column=0, padx=5, pady=5, sticky="e")
             var = tk.IntVar(value=default_value)
             self.threshold_vars[counter_type] = var
             ttk.Spinbox(thresholds_frame, from_=1, to=10000, width=10, textvariable=var).grid(row=row, column=1, padx=5, pady=5, sticky="w")
@@ -2109,12 +2168,32 @@ class PeopleCounterPRO:
         lang_menu.add_command(label="Қазақша", command=lambda: self.set_language("kk"))
         lang_mb.pack(side="right", padx=5)
 
-        # === Основная область контента ===
-        main_content = ttk.Frame(self.root, padding=20)
-        main_content.pack(fill="both", expand=True)
+        # === Scrollable Content Area ===
+        self.container = ttk.Frame(self.root)
+        self.container.pack(fill="both", expand=True)
+
+        self.canvas = tk.Canvas(self.container, highlightthickness=0, background=self.theme_manager.colors["bg"])
+        self.scrollbar = ttk.Scrollbar(self.container, orient="vertical", command=self.canvas.yview)
+        
+        # Frame that will contain all the settings
+        self.main_content = ttk.Frame(self.canvas, padding=20)
+        
+        # Configure the canvas
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.main_content, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+
+        # Bindings for resizing and scrolling
+        self.main_content.bind("<Configure>", self._on_frame_configure)
+        self.canvas.bind("<Configure>", self._on_canvas_configure)
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+        # === Основная область контента (теперь внутри main_content) ===
 
         # Конфигурация источника видео (Карточка)
-        src_frame = ttk.LabelFrame(main_content, text=LANGUAGES[self.lang]["video_source"], style="Card.TLabelframe", padding=15)
+        src_frame = ttk.LabelFrame(self.main_content, text=LANGUAGES[self.lang]["video_source"], style="Card.TLabelframe", padding=15)
         src_frame.pack(fill="x", pady=(0, 15))
         
         self.source_type = tk.StringVar(value="webcam")
@@ -2148,7 +2227,7 @@ class PeopleCounterPRO:
                   foreground=self.theme_manager.colors["accent"]).grid(row=3, column=0, columnspan=2, sticky="w", pady=2)
 
         # Сетка настроек (2 колонки)
-        settings_grid = ttk.Frame(main_content)
+        settings_grid = ttk.Frame(self.main_content)
         settings_grid.pack(fill="x", pady=0)
         
         # Левая колонка: Таймер и Системные настройки
@@ -2235,19 +2314,19 @@ class PeopleCounterPRO:
         self.notif_status_label.pack(side="right", padx=5)
 
         # === Кнопки управления зонами ===
-        btn_frame = ttk.Frame(main_content, padding=(0, 20))
+        btn_frame = ttk.Frame(self.main_content, padding=(0, 20))
         btn_frame.pack(fill="x")
         
         ttk.Button(btn_frame, text=LANGUAGES[self.lang]["save_zones"], command=self.save_lines, style="Secondary.TButton").pack(side="left", expand=True, fill="x", padx=(0, 5))
         ttk.Button(btn_frame, text=LANGUAGES[self.lang]["load_zones"], command=self.load_lines, style="Secondary.TButton").pack(side="left", expand=True, fill="x", padx=(5, 0))
 
         # ГЛАВНАЯ КНОПКА: ЗАПУСК
-        self.start_btn = ttk.Button(main_content, text=LANGUAGES[self.lang]["start_analysis"], command=self.start_engine)
+        self.start_btn = ttk.Button(self.main_content, text=LANGUAGES[self.lang]["start_analysis"], command=self.start_engine)
         self.start_btn.pack(fill="x", pady=10, ipady=5)
 
         # Текст помощи (горячие клавиши)
         help_info = LANGUAGES[self.lang]["help_text"]
-        ttk.Label(main_content, text=help_info, justify="left", font=("Segoe UI", 9), foreground=self.theme_manager.colors["gray"]).pack(pady=10)
+        ttk.Label(self.main_content, text=help_info, justify="left", font=("Segoe UI", 9), foreground=self.theme_manager.colors["gray"]).pack(pady=10)
 
     def set_language(self, lang_code):
         """
@@ -2262,6 +2341,18 @@ class PeopleCounterPRO:
         save_language(lang_code)
         messagebox.showinfo("Language", "Please restart the application for changes to take effect.")
         self.root.destroy()
+
+    def _on_frame_configure(self, event):
+        """Reset the scroll region to encompass the inner frame"""
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def _on_canvas_configure(self, event):
+        """Update the width of the main_content to match the canvas"""
+        self.canvas.itemconfig(self.canvas_window, width=event.width)
+
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling"""
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def toggle_theme_ui(self):
         """Переключает тему оформления (Светлая/Темная) и обновляет значок на кнопке."""
@@ -3162,14 +3253,12 @@ class PeopleCounterPRO:
         - Accelerated processing (faster than real-time if possible).
         """
         optimize = messagebox.askyesno(
-            "Оптимизация обработки",
-            "Рекомендуется снизить качество видео до 640x480 и 30 FPS для ускорения обработки.\n"
-            "Это сократит время обработки в 3-5 раз! Иначе обработка может занять часы.\n"
-            "Применить оптимизацию?"
+            LANGUAGES[self.lang]["optimization_title"],
+            LANGUAGES[self.lang]["optimization_msg"]
         )
         cap = cv2.VideoCapture(self.video_file_path)
         if not cap.isOpened():
-            self.root.after(0, lambda: messagebox.showerror(LANGUAGES[self.lang]["error"], "Не удалось открыть видеофайл"))
+            self.root.after(0, lambda: messagebox.showerror(LANGUAGES[self.lang]["error"], LANGUAGES[self.lang]["video_open_error"]))
             return
         orig_fps = cap.get(cv2.CAP_PROP_FPS)
         orig_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -3185,7 +3274,7 @@ class PeopleCounterPRO:
         ret, first_frame = cap.read()
         if not ret:
             cap.release()
-            self.root.after(0, lambda: messagebox.showerror(LANGUAGES[self.lang]["error"], "Не удалось прочитать первый кадр"))
+            self.root.after(0, lambda: messagebox.showerror(LANGUAGES[self.lang]["error"], LANGUAGES[self.lang]["first_frame_error"]))
             return
         if optimize:
             first_frame = cv2.resize(first_frame, (target_width, target_height))
@@ -3202,32 +3291,32 @@ class PeopleCounterPRO:
         seconds = int(estimated_seconds % 60)
         time_str = ""
         if hours > 0:
-            time_str += f"{hours} ч "
+            time_str += f"{hours} {LANGUAGES[self.lang]['hours_unit']} "
         if minutes > 0:
-            time_str += f"{minutes} мин "
-        time_str += f"{seconds} сек"
+            time_str += f"{minutes} {LANGUAGES[self.lang]['mins_unit']} "
+        time_str += f"{seconds} {LANGUAGES[self.lang]['secs_unit']}"
         proceed = messagebox.askyesno(
-            "Оценка времени обработки",
-            f"Общее количество кадров: {total_frames}\n"
-            f"Кадров для обработки: {frames_to_process}\n"
-            f"Предполагаемое время обработки: {time_str}\n"
-            "Продолжить обработку?"
+            LANGUAGES[self.lang]["time_est_title"],
+            f"{LANGUAGES[self.lang]['total_frames'].format(total_frames)}\n"
+            f"{LANGUAGES[self.lang]['frames_to_process'].format(frames_to_process)}\n"
+            f"{LANGUAGES[self.lang]['est_time'].format(time_str)}\n"
+            f"{LANGUAGES[self.lang]['continue_q']}"
         )
         if not proceed:
             cap.release()
             return
         progress_window = tk.Toplevel(self.root)
-        progress_window.title("Обработка видео")
+        progress_window.title(LANGUAGES[self.lang]["processing_video"].rstrip('.'))
         self.theme_manager.apply_to_dialog(progress_window)
         progress_window.transient(self.root)
         progress_window.grab_set()
-        ttk.Label(progress_window, text="Обработка видео...", font=("Arial", 10, "bold")).pack(pady=10)
+        ttk.Label(progress_window, text=LANGUAGES[self.lang]["processing_video"], font=("Arial", 10, "bold")).pack(pady=10)
         progress_var = tk.DoubleVar()
         progress_bar = ttk.Progressbar(progress_window, variable=progress_var, maximum=100)
         progress_bar.pack(fill="x", padx=20, pady=5)
         progress_label = ttk.Label(progress_window, text="0%")
         progress_label.pack()
-        cancel_btn = ttk.Button(progress_window, text="Отменить", command=lambda: setattr(self, 'abort_processing', True))
+        cancel_btn = ttk.Button(progress_window, text=LANGUAGES[self.lang]["cancel"], command=lambda: setattr(self, 'abort_processing', True))
         cancel_btn.pack(pady=10)
         center_window(progress_window)
         start_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -3482,12 +3571,12 @@ class PeopleCounterPRO:
             hours = int(elapsed_time // 3600)
             minutes = int((elapsed_time % 3600) // 60)
             seconds = int(elapsed_time % 60)
-            time_str = f"{hours} ч " if hours else ""
-            time_str += f"{minutes} мин " if minutes or hours else ""
-            time_str += f"{seconds} сек"
+            time_str = f"{hours} {LANGUAGES[self.lang]['hours_unit']} " if hours else ""
+            time_str += f"{minutes} {LANGUAGES[self.lang]['mins_unit']} " if minutes or hours else ""
+            time_str += f"{seconds} {LANGUAGES[self.lang]['secs_unit']}"
             result_msg = (
                 f"{LANGUAGES[self.lang]['processing_complete']}\n"
-                f"Файлы сохранены:\n"
+                f"{LANGUAGES[self.lang]['files_saved_label']}\n"
                 f"{LANGUAGES[self.lang]['video_timelapse'].format(video_name)}\n"
             )
             if self.save_csv:
@@ -3500,7 +3589,7 @@ class PeopleCounterPRO:
                 result_msg += f"\n{LANGUAGES[self.lang]['gdrive_uploaded']}\n"
                 folder_url = self.google_drive.get_folder_url(self.google_drive.folder_id)
                 if folder_url:
-                    result_msg += f"🔗 Ссылка на папку: {folder_url}\n"
+                    result_msg += f"{LANGUAGES[self.lang]['folder_link'].format(folder_url)}\n"
             if self.notification_system.email_enabled:
                 result_msg += f"{LANGUAGES[self.lang]['notifications_sent'].format(len(self.notification_system.last_notification_time))}\n"
             result_msg += (
@@ -3791,4 +3880,4 @@ if __name__ == "__main__":
     PeopleCounterPRO()  
 
 
-#zxc 
+#zxc
